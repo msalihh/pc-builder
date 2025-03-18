@@ -8,16 +8,14 @@ namespace newbuild
 {
     public class RamInfo
     {
-        public string Brand { get; set; }      // Marka
-        public string Name { get; set; }       // Model
-        public int MaxCapacity { get; set; }   // Kapasite (GB)
-        public string RamType { get; set; }    // RAM Tipi (DDR4, DDR5)
-        public int Speed { get; set; }         // Hız (MHz)
-        public string CompatiblePlatform { get; set; }
-        public double Price { get; set; }      // Fiyat
+        public required string Brand { get; set; }
+        public required string Name { get; set; }
+        public decimal Price { get; set; }
+        public int Capacity { get; set; }
+        public required string RamType { get; set; }
+        public int Speed { get; set; }
+        public required string CompatiblePlatform { get; set; }
+        public int CasLatency { get; set; }
     }
-
-
-
 }
 

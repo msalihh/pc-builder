@@ -361,3 +361,44 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Visual Studio dosyaları
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+*.log
+
+# DevExpress lisans dosyaları
+*.lic
+
+# Veritabanı dosyaları
+*.mdf
+*.ldf
+
+# Diğer
+*.tmp
+*.bak
+*.swp
+*.*~
+project.lock.json
+.DS_Store/
+
+# Özel klasörler
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# NuGet paketleri
+packages/
+*.nupkg

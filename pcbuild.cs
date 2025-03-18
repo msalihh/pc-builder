@@ -9,13 +9,18 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace newbuild
 {
-    public partial class pcbuild : DevExpress.XtraEditors.XtraForm
+    public partial class PcBuild : DevExpress.XtraEditors.XtraForm
     {
-        private readonly ComponentManager componentManager;
-        private readonly BasketManager basketManager;
+        private readonly ComponentManager _componentManager;
+        private readonly BasketManager _basketManager;
+        private readonly MongoDbService _mongoDbService;
+        private string? _selectedCpuSocket;
+        private string? _selectedMotherboardRamType;
+        private string? _selectedRamType;
+        private string? _selectedGpuName;
         private string currentUser;
 
-        public pcbuild(string username)
+        public PcBuild(string username)
         {
             InitializeComponent();
             currentUser = username;
@@ -25,13 +30,12 @@ namespace newbuild
                 AuthTokens.Basic("neo4j", "123456789")
             );
 
-            componentManager = new ComponentManager(driver);
-            basketManager = new BasketManager();
+            _componentManager = new ComponentManager(driver);
+            _basketManager = new BasketManager();
+            _mongoDbService = new MongoDbService("mongodb://localhost:27017", "pcbuilder");
         }
 
-
-
-        private async void pcbuild_Load(object sender, EventArgs e)
+        private async void PcBuild_Load(object sender, EventArgs e)
         {
             // GridView configuration
             foreach (var gridView in new[] { gridView2, gridView3, gridView4, gridView5, gridView7 })
@@ -68,12 +72,12 @@ namespace newbuild
 
         private async Task LoadAllComponents()
         {
-            gridControl2.DataSource = await componentManager.GetCpuDataAsync();
-            gridControl3.DataSource = await componentManager.GetAllMotherboardDataAsync();
-            gridControl4.DataSource = await componentManager.GetAllRamDataAsync();
-            gridControl5.DataSource = await componentManager.GetAllGpuDataAsync();
-            gridControl7.DataSource = await componentManager.GetAllSsdDataAsync();
-            gridControl6.DataSource = await componentManager.GetMonitorDataAsync();
+            gridControl2.DataSource = await _componentManager.GetCpuDataAsync();
+            gridControl3.DataSource = await _componentManager.GetAllMotherboardDataAsync();
+            gridControl4.DataSource = await _componentManager.GetAllRamDataAsync();
+            gridControl5.DataSource = await _componentManager.GetAllGpuDataAsync();
+            gridControl7.DataSource = await _componentManager.GetAllSsdDataAsync();
+            gridControl6.DataSource = await _componentManager.GetMonitorDataAsync();
         }
 
         // CPU selection and filtering motherboards
@@ -99,7 +103,7 @@ namespace newbuild
 
         private async Task LoadMotherboardData(string cpuSocket)
         {
-            var motherboardData = await componentManager.FilterMotherboardsByCpuAsync(cpuSocket);
+            var motherboardData = await _componentManager.FilterMotherboardsByCpuAsync(cpuSocket);
 
             if (!motherboardData.Any())
             {
@@ -134,7 +138,7 @@ namespace newbuild
 
         private async Task FilterRamData(string cpuSocket, string motherboardRamType)
         {
-            var ramData = await componentManager.FilterRamsByCpuAndMotherboardAsync(cpuSocket, motherboardRamType);
+            var ramData = await _componentManager.FilterRamsByCpuAndMotherboardAsync(cpuSocket, motherboardRamType);
 
             if (!ramData.Any())
             {
@@ -167,7 +171,7 @@ namespace newbuild
 
         private async Task LoadGpuData(string cpuSocket, string motherboardRamType, string ramType)
         {
-            var gpuData = await componentManager.FilterGpusByCpuMotherboardAndRamAsync(cpuSocket, motherboardRamType, ramType);
+            var gpuData = await _componentManager.FilterGpusByCpuMotherboardAndRamAsync(cpuSocket, motherboardRamType, ramType);
 
             if (!gpuData.Any())
             {
@@ -201,7 +205,7 @@ namespace newbuild
 
         private async Task FilterSsdData(string cpuSocket, string motherboardRamType, string ramType, string gpuName)
         {
-            var ssdData = await componentManager.FilterSsdsByAllComponentsAsync(cpuSocket, motherboardRamType, ramType);
+            var ssdData = await _componentManager.FilterSsdsByAllComponentsAsync(cpuSocket, motherboardRamType, ramType);
 
             if (!ssdData.Any())
             {
@@ -262,7 +266,7 @@ namespace newbuild
             try
             {
                 // Sepeti temizle
-                basketManager.ClearBasket();
+                _basketManager.ClearBasket();
                 listBoxBasket.Items.Clear();
 
                 // GridView seçimlerini temizle
@@ -316,8 +320,7 @@ namespace newbuild
                 };
 
                 // MongoDB'ye kaydet
-                var mongoService = new MongoDbService("mongodb://localhost:27017", "test"); // MongoDB bağlantısı
-                await mongoService.SaveSystemAsync(system);
+                await _mongoDbService.SaveSystemAsync(system);
 
                 MessageBox.Show("Sistem başarıyla kaydedildi!", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }

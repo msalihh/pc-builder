@@ -7,14 +7,15 @@ namespace newbuild
 {
     public class MotherboardInfo
     {
-        public string Brand { get; set; }
-        public string Name { get; set; }
-        public int Memory { get; set; }
-        public string FormFactor { get; set; }
-        public string Socket { get; set; }
-        public string RamType { get; set; }
-        public string Color { get; set; }
-        public double Price { get; set; }
+        public required string Brand { get; set; }
+        public required string Name { get; set; }
+        public decimal Price { get; set; }
+        public required string FormFactor { get; set; }
+        public required string Socket { get; set; }
+        public required string RamType { get; set; }
+        public required string Color { get; set; }
+        public int RamSlots { get; set; }
+        public int MaxRamCapacity { get; set; }
     }
 
 

@@ -9,13 +9,14 @@ namespace newbuild
 {
     public class GpuInfo
     {
-        public string Brand { get; set; }
-        public string Name { get; set; }
-        public string Memory { get; set; }
-        public string BaseClock { get; set; }
-        public string BoostClock { get; set; }
-        public string Tdp { get; set; }
-        public double Price { get; set; }
+        public required string Brand { get; set; }
+        public required string Name { get; set; }
+        public required string Memory { get; set; }
+        public required string BaseClock { get; set; }
+        public required string BoostClock { get; set; }
+        public required string Tdp { get; set; }
+        public decimal Price { get; set; }
+        public int MemorySize { get; set; }
     }
 
 

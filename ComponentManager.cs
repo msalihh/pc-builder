@@ -8,10 +8,14 @@ namespace newbuild
     public class ComponentManager
     {
         private readonly IDriver _driver;
+        private readonly string _uri;
+        private readonly string _database;
 
         public ComponentManager(IDriver driver)
         {
-            _driver = driver;
+            _driver = driver ?? throw new ArgumentNullException(nameof(driver));
+            _uri = "mongodb://localhost:27017";
+            _database = "pcbuilder";
         }
 
         private async Task<List<T>> FetchDataAsync<T>(string query, Func<IRecord, T> mapFunction, object parameters = null)
@@ -37,35 +41,39 @@ namespace newbuild
         }
 
         // Load all CPUs
-        public Task<List<CpuInfo>> GetCpuDataAsync()
+        public async Task<List<CpuInfo>> GetCpuDataAsync()
         {
-            const string query = @"
-                MATCH (cpu:CPU)
-                RETURN DISTINCT 
-                    cpu.generatedID AS ID,
-                    cpu.brand AS Brand,
-                    cpu.name AS Name,
-                    cpu.cores AS Cores,
-                    cpu.tdp AS TDP,
-                    cpu.socket AS Socket,
-                    cpu.ram_support AS RamSupport,
-                    cpu.max_ram AS MaxRam,
-                    cpu.rank AS Rank,
-                    cpu.price AS Price";
-
-            return FetchDataAsync(query, record => new CpuInfo
+            try
             {
-                ID = record["ID"]?.As<int>() ?? 0,
-                Brand = record["Brand"]?.As<string>(),
-                Name = record["Name"]?.As<string>(),
-                Cores = record["Cores"]?.As<int>() ?? 0,
-                TDP = record["TDP"]?.As<int>() ?? 0,
-                Socket = record["Socket"]?.As<string>(),
-                RamSupport = record["RamSupport"]?.As<string>(),
-                MaxRam = record["MaxRam"]?.As<int>() ?? 0,
-                Rank = record["Rank"]?.As<int>() ?? 0,
-                Price = Math.Round(record["Price"]?.As<double>() ?? 0.0, 2)
-            });
+                var session = _driver.AsyncSession();
+                var query = "MATCH (c:CPU) RETURN c";
+                var result = await session.RunAsync(query);
+                var cpuList = new List<CpuInfo>();
+
+                await foreach (var record in result)
+                {
+                    var node = record["c"].As<INode>();
+                    cpuList.Add(new CpuInfo
+                    {
+                        Brand = node.Properties["brand"].As<string>(),
+                        Name = node.Properties["name"].As<string>(),
+                        Price = Convert.ToDecimal(node.Properties["price"]),
+                        Socket = node.Properties["socket"].As<string>(),
+                        Cores = Convert.ToInt32(node.Properties["cores"]),
+                        Threads = Convert.ToInt32(node.Properties["threads"]),
+                        RamSupport = node.Properties["ramSupport"].As<string>(),
+                        BaseClock = Convert.ToDouble(node.Properties["baseClock"]),
+                        BoostClock = Convert.ToDouble(node.Properties["boostClock"]),
+                        TDP = Convert.ToInt32(node.Properties["tdp"])
+                    });
+                }
+
+                return cpuList;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"CPU verisi alınırken hata oluştu: {ex.Message}");
+            }
         }
 
         // Load all Motherboards
@@ -294,8 +302,6 @@ RETURN DISTINCT
             }, new { cpuSocket, motherboardRamType, ramType });
         }
 
-
-
         public Task<List<MonitorInfo>> GetMonitorDataAsync()
         {
             const string query = @"
@@ -318,7 +324,6 @@ RETURN DISTINCT
                 PanelType = record["PanelType"]?.As<string>()
             });
         }
-
     }
 }
 
